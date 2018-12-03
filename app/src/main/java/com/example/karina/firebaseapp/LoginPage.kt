@@ -33,7 +33,7 @@ class LoginPage : AppCompatActivity() {
             activitySpinner.visibility = View.INVISIBLE
 
             if(it.isSuccessful) {
-                val intent= Intent(this,HomePage::class.java)
+                val intent= Intent(this,MapsActivity::class.java)
                 startActivity(intent)
             } else {
                 Toast.makeText(this, "Authentication failed", Toast.LENGTH_SHORT).show()
