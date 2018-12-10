@@ -7,4 +7,56 @@
         android:layout_height="match_parent"
         tools:context=".RegisterActivity">
 
+    <EditText
+            android:layout_width="318dp"
+            android:layout_height="45dp"
+            android:inputType="textPersonName"
+            android:ems="10"
+            android:id="@+id/emailText" app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginEnd="8dp"
+            android:layout_marginTop="140dp"
+            app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="8dp" app:layout_constraintHorizontal_bias="0.601"
+            android:hint="Email" android:layout_marginBottom="10dp"
+            app:layout_constraintBottom_toTopOf="@+id/passwordText"/>
+    <EditText
+            android:layout_width="319dp"
+            android:layout_height="46dp"
+            android:inputType="textPassword"
+            android:ems="10"
+            android:id="@+id/passwordText" android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/emailText" app:layout_constraintStart_toStartOf="@+id/emailText"
+            android:layout_marginStart="8dp" app:layout_constraintEnd_toEndOf="@+id/emailText"
+            android:layout_marginBottom="8dp"
+            app:layout_constraintBottom_toTopOf="@+id/passwordConfirmText" app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintVertical_bias="0.1" android:hint="Password"/>
+    <EditText
+            android:layout_width="317dp"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"
+            android:ems="10"
+            android:id="@+id/passwordConfirmText"
+            app:layout_constraintEnd_toEndOf="@+id/passwordText"
+            app:layout_constraintStart_toStartOf="@+id/passwordText"
+            app:layout_constraintHorizontal_bias="0.0" android:layout_marginBottom="20dp"
+            app:layout_constraintBottom_toTopOf="@+id/Register_button" android:hint="Confirm Password"/>
+    <Button
+            android:text="REGISTER"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/Register_button" app:layout_constraintEnd_toEndOf="@+id/passwordConfirmText"
+            app:layout_constraintStart_toStartOf="@+id/passwordConfirmText" app:layout_constraintHorizontal_bias="0.496"
+            app:layout_constraintBottom_toBottomOf="parent" android:layout_marginBottom="132dp"
+            android:onClick="RegisterClick"/>
+    <ProgressBar
+            style="?android:attr/progressBarStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="42dp"
+            android:id="@+id/activityBar"
+            app:layout_constraintEnd_toEndOf="@+id/Register_button"
+            app:layout_constraintStart_toStartOf="@+id/Register_button" android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp" app:layout_constraintTop_toBottomOf="@+id/Register_button"
+            app:layout_constraintHorizontal_bias="0.406" android:layout_marginBottom="8dp"
+            app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintVertical_bias="0.108"
+            android:layout_marginEnd="8dp" android:visibility="invisible"/>
 </android.support.constraint.ConstraintLayout>

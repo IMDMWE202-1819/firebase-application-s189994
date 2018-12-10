@@ -1,9 +1,15 @@
 package com.example.karina.firebaseapp
 
+import android.content.Context
 import android.content.Intent
+import android.location.LocationManager
 import android.os.Bundle
+import android.support.v4.app.FragmentActivity
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.View
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -11,11 +17,16 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.GeoPoint
+import com.google.firebase.firestore.QuerySnapshot
+
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
-
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var mMap: GoogleMap
     val mAuth: FirebaseAuth = FirebaseAuth.getInstance()
+    val db = FirebaseFirestore.getInstance()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
@@ -50,9 +61,46 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        // Add a marker in Sydney and move the camera
-        val sydney = LatLng(-34.0, 151.0)
-        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+        try {
+            fusedLocationClient.lastLocation.addOnCompleteListener {
+                if (it.isSuccessful) {
+                    val location = it.result
+
+                    if ( location != null ) {
+                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude), 13.0f))
+                    }
+                }
+            }
+        }
+        catch (ex:SecurityException) {
+            Log.w("GEO", "security error", ex)
+        }
+
+        db.collection("MapEvents")
+            .get()
+            .addOnCompleteListener {
+                if (it.isSuccessful) {
+                    val result = it.result
+                    if (result != null) {
+                        val documents = result.documents
+
+                        for (document in documents) {
+                            val location: GeoPoint = document.get("location") as GeoPoint
+                            mMap.addMarker(MarkerOptions().position(LatLng(location.latitude, location.longitude)))
+                        }
+                    }
+                }
+            }
     }
+
+    fun onFabClicked(view:View) {
+        if ( mAuth.currentUser == null ) {
+            // do login
+        } else {
+            // add event
+        }
+    }
+
 }
