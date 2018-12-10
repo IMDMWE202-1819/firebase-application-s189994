@@ -19,10 +19,15 @@ class LoginPage : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login_page)
     }
-
+    fun loginRegisterClicked(view:View) {
+        val intent = Intent(this, RegisterActivity::class.java)
+        startActivity(intent)
+    }
     fun loginOnClick(view: View) {
         // don't let the user try and login again if we've already made a login request to firebase
-        if(activitySpinner.visibility == View.VISIBLE ) return
+
+        val imm = this.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(view.windowToken, 0)
 
         val email = EmailText.text.toString()
         val password = PasswordText.text.toString()

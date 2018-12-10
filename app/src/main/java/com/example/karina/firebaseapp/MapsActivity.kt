@@ -1,9 +1,11 @@
 package com.example.karina.firebaseapp
 
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.location.LocationManager
 import android.os.Bundle
+import android.renderscript.ScriptIntrinsicBLAS.UNIT
 import android.support.v4.app.FragmentActivity
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
@@ -37,14 +39,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     }
 
-    fun onLoginClicked(view: View) {
-            if ( mAuth.currentUser == null) {
-                val intent = Intent(this, LoginPage::class.java)
-                startActivity(intent)
-            } else {
-                // do something else.
-            }
-    }
     //button show different layouts
     //listener
     //dialog
@@ -96,10 +90,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     fun onFabClicked(view:View) {
-        if ( mAuth.currentUser == null ) {
-            // do login
-        } else {
-            // add event
+        if ( mAuth.currentUser == null ){
+            val intent = Intent(this, LoginPage::class.java)
+            startActivity(intent)
+        }
+        else {
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
         }
     }
 
