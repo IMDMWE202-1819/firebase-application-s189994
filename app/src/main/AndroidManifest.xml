@@ -29,7 +29,6 @@
         <activity android:name=".LoginPage">
         </activity>
         <activity android:name=".RegisterActivity">
-
         </activity>
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
@@ -51,6 +50,8 @@
 
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+        </activity>
+        <activity android:name=".UploadingActivity">
         </activity>
     </application>
 

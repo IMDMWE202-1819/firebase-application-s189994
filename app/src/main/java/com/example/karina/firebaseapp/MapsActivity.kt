@@ -2,6 +2,7 @@ package com.example.karina.firebaseapp
 
 import android.app.Dialog
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.location.LocationManager
 import android.os.Bundle
@@ -97,6 +98,26 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         else {
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
+        }
+
+        override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+            return activity?.let {
+                val builder = AlertDialog.Builder(it)
+
+                // Inflate and set the layout for the dialog
+                // Pass null as the parent view because its going in the dialog layout
+                builder.setView(layoutInflater.inflate(R.layout.activity_uploading, null))
+                    // Add action buttons
+                    .setPositiveButton(R.string.signin,
+                        DialogInterface.OnClickListener { dialog, id ->
+                            // sign in the user ...
+                        })public abstract void cancel ()
+                    .setNegativeButton(R.string.cancel,
+                        DialogInterface.OnClickListener { dialog, id ->
+                            getDialog().cancel()
+                        })
+                builder.create()
+            } ?: throw IllegalStateException("Activity cannot be null")
         }
     }
 
