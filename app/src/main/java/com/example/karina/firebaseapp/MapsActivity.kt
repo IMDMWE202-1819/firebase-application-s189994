@@ -1,16 +1,23 @@
 package com.example.karina.firebaseapp
 
+import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.location.LocationManager
+import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.renderscript.ScriptIntrinsicBLAS.UNIT
 import android.support.v4.app.FragmentActivity
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.TextView
+import com.example.karina.firebaseapp.R.layout.activity_uploading
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -23,6 +30,10 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.QuerySnapshot
+import com.google.firebase.storage.FirebaseStorage
+import kotlinx.android.synthetic.main.activity_uploading.*
+import java.lang.IllegalStateException
+import java.util.*
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
@@ -30,6 +41,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var mMap: GoogleMap
     val mAuth: FirebaseAuth = FirebaseAuth.getInstance()
     val db = FirebaseFirestore.getInstance()
+    val storageRef = FirebaseStorage.getInstance().reference
+
+    private var imageToUpload:Uri? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
@@ -39,6 +54,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mapFragment.getMapAsync(this)
 
     }
+
 
     //button show different layouts
     //listener
@@ -90,35 +106,111 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             }
     }
 
-    fun onFabClicked(view:View) {
-        if ( mAuth.currentUser == null ){
-            val intent = Intent(this, LoginPage::class.java)
-            startActivity(intent)
-        }
-        else {
-            val intent = Intent(this, MainActivity::class.java)
-            startActivity(intent)
+    val PICK_IMAGE = 1234
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if ( requestCode == PICK_IMAGE) {
+            if ( data != null) {
+                imageToUpload = data.data
+            }
         }
 
-        override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-            return activity?.let {
-                val builder = AlertDialog.Builder(it)
-
-                // Inflate and set the layout for the dialog
-                // Pass null as the parent view because its going in the dialog layout
-                builder.setView(layoutInflater.inflate(R.layout.activity_uploading, null))
-                    // Add action buttons
-                    .setPositiveButton(R.string.signin,
-                        DialogInterface.OnClickListener { dialog, id ->
-                            // sign in the user ...
-                        })public abstract void cancel ()
-                    .setNegativeButton(R.string.cancel,
-                        DialogInterface.OnClickListener { dialog, id ->
-                            getDialog().cancel()
-                        })
-                builder.create()
-            } ?: throw IllegalStateException("Activity cannot be null")
-        }
+        super.onActivityResult(requestCode, resultCode, data)
     }
 
-}
+    fun onFabClicked(view:View) {
+
+        if (mAuth.currentUser == null) {
+            val intent = Intent(this, LoginPage::class.java)
+            startActivity(intent)
+        } else {
+          //  val intent = Intent(this, MainActivity::class.java)
+          //  startActivity(intent)
+
+           val dialogView = layoutInflater.inflate(R.layout.activity_uploading, null)
+           val upload_button = dialogView.findViewById<Button>(R.id.btnChoose)
+
+            upload_button.setOnClickListener {
+                val intent = Intent()
+                intent.type = "image/*"
+                intent.action = Intent.ACTION_GET_CONTENT
+                startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE)
+            }
+           val builder = AlertDialog.Builder(this)
+            builder.setView(dialogView)
+                .setPositiveButton("Upload"
+                ) { dialog, _ ->
+                    val titleText = dialogView.findViewById<TextView>(R.id.dialog_title_text)
+                    val descriptionText = dialogView.findViewById<TextView>(R.id.dialog_description_text)
+
+                    val event = hashMapOf<String, Any?>()
+                    event["title"] = titleText.text.toString()
+                    event["description"] = descriptionText.text.toString()
+                    event["user"] = mAuth.currentUser?.email
+
+                    fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+                    try {
+                        fusedLocationClient.lastLocation.addOnCompleteListener {
+                            if (it.isSuccessful) {
+                                val location = it.result
+
+                                if ( location != null ) {
+                                    val currentLocation = GeoPoint(location.latitude, location.longitude)
+                                    event["location"] = currentLocation
+
+                                    if ( imageToUpload != null) {
+                                        val imageUri = imageToUpload
+                                        val email = mAuth.currentUser!!.email
+                                        val currentDate = Calendar.getInstance().time
+                                        val imageRef = storageRef.child("$email/$currentDate.png")
+                                        if ( imageUri != null)
+                                            imageRef.putFile(imageUri)
+                                    }
+
+                                    db.collection("MapEvents").add(event)
+                                    mMap.addMarker(MarkerOptions().position(LatLng(location.latitude, location.longitude)))
+                                }
+                            }
+                        }
+                    }
+                    catch (ex:SecurityException) {
+                        Log.w("GEO", "security error", ex)
+                    }
+
+
+                }
+                .setNegativeButton("Cancel"
+                ) { dialog, _ ->
+                    dialog.cancel()
+                }
+            builder.create().show()
+        }
+    }}
+
+   // private void chooseImage() {
+     //   val btnChoose: Button
+       // val btnUpload: Button
+        //val imageView: ImageView
+        //val filePath: Uri
+        //Intent intent = new Intent();
+        //btnChoose = (Button)findViewById(R.id.btnChoose);
+       // btnUpload = (Button)findViewById(R.id.btnUpload);
+       // imageView = (ImageView)findViewById(R.id.imgView);
+
+ //       btnChoose.setOnClickListener(new View.onClickListener()) {
+   //         @Override
+     //       public void onClick (View.view) {
+       //         chooseImage();
+         //   }
+        //}
+
+      //  btnUpload.setOnClickListener(new View.onClickListener()) {
+        //    @Override
+          //  public void onClick (View view) {
+//
+  //          }
+    //    })
+//
+  //  }
+//}
