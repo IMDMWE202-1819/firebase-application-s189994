@@ -25,6 +25,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -32,6 +33,9 @@ import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.activity_uploading.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 import java.lang.IllegalStateException
 import java.util.*
 
@@ -44,6 +48,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     val storageRef = FirebaseStorage.getInstance().reference
 
     private var imageToUpload:Uri? = null
+    private var imageDownload:String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,7 +59,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mapFragment.getMapAsync(this)
 
     }
-
 
     //button show different layouts
     //listener
@@ -71,6 +75,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
      */
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
+
+        mMap.setOnMarkerClickListener { marker ->
+            val id = marker.title
+            db.collection("MapEvents")
+                .document(id)
+                .get()
+                .addOnCompleteListener {task ->
+                    val document = task.result
+                    if ( document != null ) {
+                        val eventTitle = document.get("title") as String
+                        val eventDescription = document.get("description") as String
+
+
+                    }
+            }
+            false
+        }
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
@@ -99,7 +120,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
                         for (document in documents) {
                             val location: GeoPoint = document.get("location") as GeoPoint
-                            mMap.addMarker(MarkerOptions().position(LatLng(location.latitude, location.longitude)))
+                            mMap.addMarker(MarkerOptions().position(LatLng(location.latitude, location.longitude)).title(document.id))
                         }
                     }
                 }
@@ -116,6 +137,26 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
 
         super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    private suspend fun uploadImage() {
+        GlobalScope.async {
+            if (imageToUpload != null) {
+                val imageUri = imageToUpload
+                val email = mAuth.currentUser!!.email
+                val currentDate = Calendar.getInstance().time
+                val imageRef = storageRef.child("$email/$currentDate.png")
+                if (imageUri != null)
+                    imageRef.putFile(imageUri).addOnCompleteListener {
+                        if ( it.isComplete )
+                        {
+                            imageDownload = it.result?.metadata?.path
+
+                            
+                        }
+                    }
+            }
+        }.await()
     }
 
     fun onFabClicked(view:View) {
@@ -159,14 +200,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                                     val currentLocation = GeoPoint(location.latitude, location.longitude)
                                     event["location"] = currentLocation
 
-                                    if ( imageToUpload != null) {
-                                        val imageUri = imageToUpload
-                                        val email = mAuth.currentUser!!.email
-                                        val currentDate = Calendar.getInstance().time
-                                        val imageRef = storageRef.child("$email/$currentDate.png")
-                                        if ( imageUri != null)
-                                            imageRef.putFile(imageUri)
+                                    runBlocking {
+                                        uploadImage()
                                     }
+
+                                    event["image_url"] = imageDownload
 
                                     db.collection("MapEvents").add(event)
                                     mMap.addMarker(MarkerOptions().position(LatLng(location.latitude, location.longitude)))
