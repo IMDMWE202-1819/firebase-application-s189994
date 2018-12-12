@@ -35,6 +35,7 @@ import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.activity_uploading.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import java.lang.IllegalStateException
 import java.util.*
@@ -49,6 +50,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private var imageToUpload:Uri? = null
     private var imageDownload:String? = null
+
+    private val markerMap = hashMapOf<String, String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,7 +80,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap = googleMap
 
         mMap.setOnMarkerClickListener { marker ->
-            val id = marker.title
+            val id:String = markerMap[marker.id] as String
+
             db.collection("MapEvents")
                 .document(id)
                 .get()
@@ -86,7 +90,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     if ( document != null ) {
                         val eventTitle = document.get("title") as String
                         val eventDescription = document.get("description") as String
+                        val eventImage:String? = document.get("image_url") as String?
 
+                        // add alert builder here!
+
+                        val dialogView = layoutInflater.inflate(R.layout.activity_uploading, null)
+
+                        val builder = AlertDialog.Builder(this)
+                        builder.setView(dialogView).setPositiveButton("OK") { dialog, _ ->
+                            dialog.dismiss()
+                        }.create().show()
 
                     }
             }
@@ -120,7 +133,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
                         for (document in documents) {
                             val location: GeoPoint = document.get("location") as GeoPoint
-                            mMap.addMarker(MarkerOptions().position(LatLng(location.latitude, location.longitude)).title(document.id))
+                            val marker = mMap.addMarker(MarkerOptions().position(LatLng(location.latitude, location.longitude)))
+
+                            markerMap[marker.id] = document.id
                         }
                     }
                 }
@@ -146,15 +161,30 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 val email = mAuth.currentUser!!.email
                 val currentDate = Calendar.getInstance().time
                 val imageRef = storageRef.child("$email/$currentDate.png")
-                if (imageUri != null)
-                    imageRef.putFile(imageUri).addOnCompleteListener {
-                        if ( it.isComplete )
-                        {
-                            imageDownload = it.result?.metadata?.path
+                if (imageUri != null) {
+                 val task = imageRef.putFile(imageUri)
 
-                            
+                    while ( task.isInProgress) {
+                        delay(10)
+                    }
+
+                    if ( task.isSuccessful ) {
+                        val meta = task.snapshot.metadata
+                        val uploadRef = meta?.reference
+                        if ( uploadRef != null ) {
+
+                            val downloadUrl = uploadRef.downloadUrl
+                            while(!downloadUrl.isComplete) {
+                                delay(10)
+                            }
+
+                            if ( downloadUrl.isSuccessful)
+                            {
+                                imageDownload = downloadUrl.result.toString()
+                            }
                         }
                     }
+                }
             }
         }.await()
     }
@@ -206,8 +236,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
                                     event["image_url"] = imageDownload
 
-                                    db.collection("MapEvents").add(event)
-                                    mMap.addMarker(MarkerOptions().position(LatLng(location.latitude, location.longitude)))
+                                    db.collection("MapEvents").add(event).addOnCompleteListener { task ->
+                                        if ( task.isSuccessful ) {
+                                            val taskId = task.result!!.id
+                                            val marker = mMap.addMarker(MarkerOptions().position(LatLng(location.latitude, location.longitude)))
+                                            markerMap[marker.id] = taskId
+                                        }
+                                    }
+
                                 }
                             }
                         }
