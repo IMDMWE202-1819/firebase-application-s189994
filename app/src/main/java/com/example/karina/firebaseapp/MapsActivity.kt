@@ -92,9 +92,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                         val eventDescription = document.get("description") as String
                         val eventImage:String? = document.get("image_url") as String?
 
-                        // add alert builder here!
-
-                        val dialogView = layoutInflater.inflate(R.layout.activity_uploading, null)
+                        val dialogView = layoutInflater.inflate(R.layout.marker_info, null)
 
                         val builder = AlertDialog.Builder(this)
                         builder.setView(dialogView).setPositiveButton("OK") { dialog, _ ->
@@ -114,7 +112,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     val location = it.result
 
                     if ( location != null ) {
-                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude), 13.0f))
+                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude), 12.0f))
                     }
                 }
             }
