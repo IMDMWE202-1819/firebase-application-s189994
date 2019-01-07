@@ -32,7 +32,9 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.storage.FirebaseStorage
+import kotlinx.android.synthetic.main.activity_maps.*
 import kotlinx.android.synthetic.main.activity_uploading.*
+import kotlinx.android.synthetic.main.marker_info.view.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -93,6 +95,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                         val eventImage:String? = document.get("image_url") as String?
 
                         val dialogView = layoutInflater.inflate(R.layout.marker_info, null)
+
+                            val descriptionTextView = dialogView.findViewById<TextView>(R.id.description)
+                            descriptionTextView.text = eventDescription
+
+                        val titleTextView = dialogView.findViewById<TextView>(R.id.title)
+                        titleTextView.text = eventTitle
 
                         val builder = AlertDialog.Builder(this)
                         builder.setView(dialogView).setPositiveButton("OK") { dialog, _ ->
@@ -192,9 +200,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         if (mAuth.currentUser == null) {
             val intent = Intent(this, LoginPage::class.java)
             startActivity(intent)
+
         } else {
-          //  val intent = Intent(this, MainActivity::class.java)
-          //  startActivity(intent)
+            fab_signOut.getVisibility() != View.VISIBLE
+            FirebaseAuth.getInstance().signOut()
 
            val dialogView = layoutInflater.inflate(R.layout.activity_uploading, null)
            val upload_button = dialogView.findViewById<Button>(R.id.btnChoose)
@@ -219,8 +228,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
                     fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
+                    Log.d("GEO", "before lastLocation.onComplete")
+
                     try {
+                        Log.d("GEO", "in lastLocation try block")
                         fusedLocationClient.lastLocation.addOnCompleteListener {
+                            Log.d("GEO", "in lastLocation.onComplete")
                             if (it.isSuccessful) {
                                 val location = it.result
 
@@ -243,11 +256,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                                     }
 
                                 }
+                            } else {
+                                Log.d("GEO", "failed to get last location", it.exception)
                             }
                         }
                     }
                     catch (ex:SecurityException) {
                         Log.w("GEO", "security error", ex)
+                    }
+                    catch (ex:Exception) {
+                        Log.w("APP", "general error", ex)
                     }
 
 
