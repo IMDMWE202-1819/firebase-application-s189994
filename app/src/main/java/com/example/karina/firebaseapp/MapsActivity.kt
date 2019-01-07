@@ -32,8 +32,10 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.storage.FirebaseStorage
+import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_maps.*
 import kotlinx.android.synthetic.main.activity_uploading.*
+import kotlinx.android.synthetic.main.marker_info.*
 import kotlinx.android.synthetic.main.marker_info.view.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -101,6 +103,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
                         val titleTextView = dialogView.findViewById<TextView>(R.id.title)
                         titleTextView.text = eventTitle
+
+                        //val imageView = eventImage
+                            //Picasso.get()
+                            //.load(eventImage)
+                            // .into(image_url)
 
                         val builder = AlertDialog.Builder(this)
                         builder.setView(dialogView).setPositiveButton("OK") { dialog, _ ->
@@ -279,31 +286,5 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 }
             builder.create().show()
         }
-    }}
-
-   // private void chooseImage() {
-     //   val btnChoose: Button
-       // val btnUpload: Button
-        //val imageView: ImageView
-        //val filePath: Uri
-        //Intent intent = new Intent();
-        //btnChoose = (Button)findViewById(R.id.btnChoose);
-       // btnUpload = (Button)findViewById(R.id.btnUpload);
-       // imageView = (ImageView)findViewById(R.id.imgView);
-
- //       btnChoose.setOnClickListener(new View.onClickListener()) {
-   //         @Override
-     //       public void onClick (View.view) {
-       //         chooseImage();
-         //   }
-        //}
-
-      //  btnUpload.setOnClickListener(new View.onClickListener()) {
-        //    @Override
-          //  public void onClick (View view) {
-//
-  //          }
-    //    })
-//
-  //  }
-//}
+    }
+}
