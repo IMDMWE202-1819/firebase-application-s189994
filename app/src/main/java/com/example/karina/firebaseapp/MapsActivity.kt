@@ -195,20 +195,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }.await()
     }
 
+    fun onLogoutClicked(view:View) {
+        fab_signOut.hide()
+        FirebaseAuth.getInstance().signOut()
+    }
+
     fun onFabClicked(view:View) {
 
-        if (mAuth.currentUser == null) {
-            val intent = Intent(this, LoginPage::class.java)
-            startActivity(intent)
+                if (mAuth.currentUser == null) {
+                    val intent = Intent(this, LoginPage::class.java)
+                    startActivity(intent)
+                    fab_signOut.show()
 
-        } else {
-            fab_signOut.getVisibility() != View.VISIBLE
-            FirebaseAuth.getInstance().signOut()
+                } else {
+                    val dialogView = layoutInflater.inflate(R.layout.activity_uploading, null)
+                    val upload_button = dialogView.findViewById<Button>(R.id.btnChoose)
 
-           val dialogView = layoutInflater.inflate(R.layout.activity_uploading, null)
-           val upload_button = dialogView.findViewById<Button>(R.id.btnChoose)
-
-            upload_button.setOnClickListener {
+                    upload_button.setOnClickListener {
                 val intent = Intent()
                 intent.type = "image/*"
                 intent.action = Intent.ACTION_GET_CONTENT
