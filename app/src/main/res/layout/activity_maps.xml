@@ -20,12 +20,14 @@
             android:layout_marginEnd="27dp"
             android:layout_marginBottom="20dp" android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true" android:visibility="visible" android:onClick="onFabClicked"
-            map:backgroundTint="@color/colorPrimaryDark"/>
+            map:backgroundTint="@color/colorPrimaryDark"
+            android:src="@drawable/plus"/>
     <android.support.design.widget.FloatingActionButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:clickable="true" map:srcCompat="@color/colorAccent" android:layout_alignParentBottom="true"
             android:id="@+id/fab_signOut"
             android:layout_marginBottom="77dp" android:layout_alignParentEnd="true" android:layout_marginEnd="27dp"
-            android:onClick="onLogoutClicked"/>
+            android:onClick="onLogoutClicked"
+            android:src="@drawable/signout"/>
 </RelativeLayout>
